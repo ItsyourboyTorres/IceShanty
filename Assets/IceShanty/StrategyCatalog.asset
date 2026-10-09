@@ -17,31 +17,86 @@ MonoBehaviour:
     title: Heavy Winch
     description: 10+ lb fish reel instantly. Under 3 lb are destroyed.
     price: 80
+    category: 0
+    unlockDay: 1
   - upgrade: 1
     title: Ghost Reel
     description: Double relic drops. Fish escape 35% faster.
-    price: 80
+    price: 120
+    category: 0
+    unlockDay: 3
   - upgrade: 2
     title: Neon Glow-Bait
     description: 'Cosmic chance: 5% to 40%. +30% line snap chance.'
     price: 35
+    category: 2
+    unlockDay: 1
   - upgrade: 3
     title: Chum Bucket
     description: Next 3 bites are instant. Sizes remain random.
     price: 25
+    category: 2
+    unlockDay: 1
   - upgrade: 4
     title: Sonar Screen
     description: Reveals incoming size and tag before the bite.
     price: 60
+    category: 3
+    unlockDay: 1
   - upgrade: 5
     title: Propane Heater
     description: Prevents ice; 35% longer checks. Broken on boss rounds.
     price: 75
+    category: 3
+    unlockDay: 1
   - upgrade: 6
     title: Lucky Bobblehead
     description: Each fish sold has a 10% chance to pay twice.
     price: 65
+    category: 3
+    unlockDay: 3
+  - upgrade: 7
+    title: Braided Line
+    description: Halves line-snap chance. Replaces your current line.
+    price: 45
+    category: 1
+    unlockDay: 1
+  - upgrade: 8
+    title: Moon-Silk Line
+    description: 20% longer skill checks, but adds 10% snap chance. Replaces your
+      current line.
+    price: 100
+    category: 1
+    unlockDay: 3
+  - upgrade: 9
+    title: Ice Chisel
+    description: 'Ice Chisel: 6 highlighted hits, 1.7s per hit. Requires the previous
+      tool. Persists through days.'
+    price: 35
+    category: 4
+    unlockDay: 1
+  - upgrade: 10
+    title: Hand Auger
+    description: 'Hand Auger: 5 highlighted hits, 2.0s per hit. Requires the previous
+      tool. Persists through days.'
+    price: 90
+    category: 4
+    unlockDay: 2
+  - upgrade: 11
+    title: Gas Auger
+    description: 'Gas Auger: 3 highlighted hits, 2.3s per hit. Requires the previous
+      tool. Persists through days.'
+    price: 180
+    category: 4
+    unlockDay: 3
+  - upgrade: 12
+    title: Electric Auger
+    description: 'Electric Auger: 2 highlighted hits, 2.6s per hit. Requires the
+      previous tool. Persists through days.'
+    price: 300
+    category: 4
+    unlockDay: 4
   winningRound: 6
-  freezePerSecond: 0.035
+  freezePerSecond: 0.011111111
   heavyPounds: 10
   smallPounds: 3

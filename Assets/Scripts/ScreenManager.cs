@@ -21,6 +21,7 @@ public sealed class ScreenManager : MonoBehaviour
 
     public void GoLeft() => Move(-1);
     public void GoRight() => Move(1);
+    public void ReturnToFishing() => SetScreen(Screen.Fishing);
 
     void Move(int direction)
     {

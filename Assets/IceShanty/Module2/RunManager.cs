@@ -7,6 +7,8 @@ namespace IceShanty
     {
         [SerializeField] RunRules rules;
         public StrategyManager strategy;
+        public DayTransition dayTransition;
+        public bool CanPayQuota => State!=null && (State.Phase==RunPhase.Fishing || State.Phase==RunPhase.QuotaCheck) && State.Cash>=State.Quota && !(dayTransition && dayTransition.Busy) && !(strategy && (strategy.fishing.Busy || (strategy.hole && strategy.hole.Busy) || strategy.screens.IsTransitioning));
         public int StartingCash => Mathf.Max(0,rules.startingCash);
         public int AttemptsPerPeriod => Mathf.Max(1,rules.attemptsPerPeriod);
         public RunState State { get; private set; }
@@ -40,7 +42,7 @@ namespace IceShanty
         // Called by the sell system after removing sold fish from inventory.
         public bool RecordSale(int amount)
         {
-            if (State == null || State.Phase == RunPhase.GameOver || State.Phase == RunPhase.Victory || amount <= 0 ||
+            if ((dayTransition && dayTransition.Busy) || State == null || State.Phase == RunPhase.GameOver || State.Phase == RunPhase.Victory || amount <= 0 ||
                 amount > int.MaxValue - State.Cash || amount > int.MaxValue - State.Earnings) return false;
             State.Cash += amount;
             State.Earnings += amount;
@@ -50,28 +52,33 @@ namespace IceShanty
 
         public bool TrySpend(int amount)
         {
-            if (State == null || State.Phase == RunPhase.GameOver || State.Phase == RunPhase.Victory || amount <= 0 || State.Cash < amount) return false;
+            if ((dayTransition && dayTransition.Busy) || State == null || State.Phase == RunPhase.GameOver || State.Phase == RunPhase.Victory || amount <= 0 || State.Cash < amount) return false;
             State.Cash -= amount;
             Changed?.Invoke();
             return true;
         }
 
-        // Earnings are the target; submitting does not deduct rent from cash.
+        // Payment uses cash on hand. The deduction and new day commit together at black.
         public void SubmitQuota()
         {
-            if (State == null || State.Phase != RunPhase.QuotaCheck || (strategy && strategy.fishing.Busy)) return;
-            if (State.Earnings < State.Quota)
-            {
-                State.Phase = RunPhase.GameOver;
-                Changed?.Invoke();
-                return;
-            }
+            if(!CanPayQuota) return;
+            if(dayTransition) dayTransition.Begin(State); else CompleteQuotaPayment(State);
+        }
+        public void CompleteQuotaPayment(RunState expected)
+        {
+            if(State!=expected || State.Cash<State.Quota || (State.Phase!=RunPhase.Fishing && State.Phase!=RunPhase.QuotaCheck)) return;
+            State.Cash-=State.Quota;
             if(strategy && State.Period>=strategy.catalog.winningRound)
             {
                 State.Phase=RunPhase.Victory; strategy.Win(); Changed?.Invoke(); return;
             }
             State.Period++;
             BeginPeriod();
+        }
+        public void CheckFailure()
+        {
+            if(State==null || State.Phase!=RunPhase.QuotaCheck || State.Cash>=State.Quota || !strategy || strategy.fishing.Busy || strategy.fishing.Count>0 || (dayTransition && dayTransition.Busy)) return;
+            State.Phase=RunPhase.GameOver; Changed?.Invoke();
         }
 
         void BeginPeriod()

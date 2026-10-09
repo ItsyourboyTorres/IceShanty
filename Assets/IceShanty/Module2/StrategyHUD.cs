@@ -8,7 +8,7 @@ namespace IceShanty
     {
         public StrategyManager game;
         public GameObject shopPanel, inventoryPanel;
-        public Text market, boss, inventory, notice, loadout, sonar;
+        public Text market, boss, inventory, notice, loadout, sonar, chairInfo;
         public TextMesh marketBoard;
         public Button[] buyButtons;
         public Text[] buyLabels;
@@ -19,7 +19,13 @@ namespace IceShanty
             bool shop=game.screens.Current==ScreenManager.Screen.Shop;
             bool fishing=game.screens.Current==ScreenManager.Screen.Fishing;
             shopPanel.SetActive(shop); inventoryPanel.SetActive(game.screens.Current==ScreenManager.Screen.Sell);
-            market.text=game.DemandText;
+            market.gameObject.SetActive(game.screens.Current==ScreenManager.Screen.Sell);
+            market.text="MARKET OF THE DAY\n"+game.DemandText.Replace("MARKET: ","");
+            boss.gameObject.SetActive(game.Won || (fishing && game.Boss));
+            chairInfo.gameObject.SetActive(shop);
+            chairInfo.text="CHAIRS: Commercial unlocks at round 3 / Caretaker unlocks on a win";
+            loadout.transform.parent.gameObject.SetActive(shop);
+            notice.gameObject.SetActive(fishing && (game.Ice>.2f || game.ChumBites>0));
             if(marketBoard) marketBoard.text=game.DemandText.Replace(": ","\n");
             boss.text=game.Won ? "RUN WON / CARETAKER CHAIR UNLOCKED" : game.Boss ? "BOSS QUOTA: BROKEN HEATER / ICE FREEZES 2x FASTER" : "CHAIR UNLOCKS: Reach round 3 / Win round 6";
             notice.text=shop ? game.Notice : $"Ice {game.Ice:P0}  |  Chum bites {game.ChumBites}  |  Reel: {(game.Reel.HasValue ? game.Reel.ToString():"Standard")}";
@@ -31,8 +37,9 @@ namespace IceShanty
                 string category=i<2 ? "RODS & REELS" : i<4 ? "BAIT & CHUM":"GADGETS";
                 buyLabels[i].text=$"{category}: {item.title}  /  {(game.Owned(item.upgrade)?"EQUIPPED":"$"+item.price)}\n{item.description}";
             }
-            clearIce.gameObject.SetActive(fishing); clearIce.interactable=game.Ice>0 && (!game.fishing.Busy || game.fishing.Phase==FishingController.Stage.Waiting);
-            chum.gameObject.SetActive(fishing); chum.interactable=game.ChumBuckets>0 && !game.fishing.Busy && game.run.State.Phase==RunPhase.Fishing;
+            clearIce.gameObject.SetActive(fishing && game.HoleOpen && game.FullyFrozen); clearIce.interactable=!game.fishing.Busy && !(game.hole && game.hole.Busy) && game.run.State.Phase==RunPhase.Fishing;
+            clearIce.GetComponentInChildren<Text>().text="BREAK ICE / E";
+            chum.gameObject.SetActive(fishing && game.HoleOpen && game.ChumBuckets>0); chum.interactable=game.ChumBuckets>0 && !game.fishing.Busy && game.run.State.Phase==RunPhase.Fishing;
             chum.GetComponentInChildren<Text>().text=$"DUMP CHUM ({game.ChumBuckets})";
             removeBait.gameObject.SetActive(shop && game.Glow);
             if(inventoryPanel.activeSelf)
@@ -44,3 +51,4 @@ namespace IceShanty
         }
     }
 }
+

@@ -2,7 +2,9 @@ using UnityEngine;
 
 namespace IceShanty
 {
-    public enum Upgrade { HeavyWinch, GhostReel, GlowBait, Chum, Sonar, Heater, Bobblehead }
+    public enum Upgrade { HeavyWinch, GhostReel, GlowBait, Chum, Sonar, Heater, Bobblehead, ReinforcedLine, SilkLine, IceChisel, HandAuger, GasAuger, ElectricAuger }
+    public enum ShopCategory { Rods, Lines, Bait, Accessories, Tools }
+    public enum HoleTool { Axe, IceChisel, HandAuger, GasAuger, ElectricAuger }
     public enum FishTag { Shallow, DeepWater, Cosmic, Relic }
     public enum Demand { DeepWater, Heavy, Cosmic }
     public enum Loadout { Angler, Commercial, Caretaker }
@@ -11,6 +13,8 @@ namespace IceShanty
         public Upgrade upgrade;
         public string title, description;
         public int price;
+        public ShopCategory category;
+        [Min(1)] public int unlockDay=1;
     }
     [CreateAssetMenu(menuName="Ice Shanty/Strategy Catalog")]
     public sealed class StrategyCatalog : ScriptableObject
@@ -25,7 +29,7 @@ namespace IceShanty
             new ShopItem { upgrade=Upgrade.Bobblehead, title="Lucky Bobblehead", description="Each fish sold has a 10% chance to pay twice.", price=65 }
         };
         [Min(1)] public int winningRound=6;
-        [Min(0)] public float freezePerSecond=.035f;
+        [Min(0)] public float freezePerSecond=1f/90f;
         public float heavyPounds=10, smallPounds=3;
     }
 }

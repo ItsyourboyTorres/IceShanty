@@ -60,7 +60,8 @@ namespace IceShanty
         }
         public void Cast()
         {
-            if(strategy && (Count>=strategy.Capacity || strategy.Ice>=.95f)) { Message=Count>=strategy.Capacity ? "Storage full. Sell your catch." : "Hole frozen! Tap E or CLEAR ICE."; return; }
+            if(strategy && ((!strategy.HoleOpen) || (strategy.hole && strategy.hole.Busy) || (run.dayTransition && run.dayTransition.Busy))) { Message="Create the ice hole first."; return; }
+            if(strategy && (Count>=strategy.Capacity || strategy.FullyFrozen)) { Message=Count>=strategy.Capacity ? "Storage full. Sell your catch." : "Hole fully frozen! Press E or BREAK ICE."; return; }
             if (Busy || screens.IsTransitioning || screens.Current != ScreenManager.Screen.Fishing || !run.TryUseAttempt()) return;
             screens.InputLocked = true; StartCoroutine(Fish());
         }
@@ -99,13 +100,13 @@ namespace IceShanty
             checkLabel.text = "BITE!  SPACE / HIT IN THE GREEN ZONE";
             while (progress < 1 && !resolved)
             {
-                float duration=settings.checkDuration*(strategy && strategy.Warm ? 1.35f:1)*(strategy && strategy.Reel==Upgrade.GhostReel && !relic ? .65f:1);
+                float duration=settings.checkDuration*(strategy ? strategy.CheckMultiplier*(.7f+.3f*strategy.HoleQuality):1)*(strategy && strategy.Warm ? 1.35f:1)*(strategy && strategy.Reel==Upgrade.GhostReel && !relic ? .65f:1);
                 progress = Mathf.Min(1, progress + Time.deltaTime/Mathf.Max(.2f,duration));
                 needle.anchorMin = needle.anchorMax = new Vector2(progress,.5f);
                 needle.anchoredPosition = Vector2.zero;
                 yield return null;
             }
-            bool snapped=success && strategy && strategy.Glow && Random.value<.3f;
+            bool snapped=success && strategy && Random.value<strategy.SnapChance;
             if(snapped) success=false;
             Phase = Stage.Reeling; checkPanel.SetActive(false);
             Message = success ? "Hooked! Reeling in..." : "Missed! Reeling the line back in...";
@@ -128,9 +129,10 @@ namespace IceShanty
                 if(relic && strategy && strategy.Reel==Upgrade.GhostReel && Count<strategy.Capacity) inventory.Add(fish);
                 Message = value==0 ? "Heavy Winch destroyed the small fish. Worth $0." : $"Caught {name}: {weight*2.20462262f:0.0} lb / {tag}. Sell for the current market price.";
             }
-            else Message = snapped ? "Glow bait snapped the line! Catch lost." : "The fish escaped. Try another cast.";
+            else Message = snapped ? "The line snapped! Catch lost." : "The fish escaped. Try another cast.";
             Incoming="No signal";
             ResetRig(); Phase = Stage.Ready; screens.InputLocked = false;
+            run.CheckFailure();
         }
         public void SellAll()
         {
@@ -140,6 +142,7 @@ namespace IceShanty
                 if(fish.tag!=FishTag.Relic && fish.value>0 && Random.value<.1f) { total+=StrategyManager.Quote(fish,strategy.Market); duplicates++; }
             if(total>0 && !run.RecordSale(total)) return;
             Message = $"Sold {Count} catches for ${total}. Bonus duplicates: {duplicates}."; inventory.Clear();
+            run.CheckFailure();
         }
     }
 }
